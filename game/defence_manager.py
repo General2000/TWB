@@ -29,7 +29,7 @@ class DefenceManager:
 
     runs = 0
     logger = None
-    manage_flags_enabled = True
+    manage_flags_enabled = False
     support_factor = 0.25
     support_max_villages = 2
 

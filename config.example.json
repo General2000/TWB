@@ -5,8 +5,8 @@
     "author": "stefan2200"
   },
   "server": {
-    "server": "nlc1",
-    "endpoint": "https://nlc1.tribalwars.nl/game.php",
+    "server": "ch84",
+    "endpoint": "https://ch84.staemme.ch/game.php",
     "server_on_twstats": false
   },
   "reporting": {
@@ -28,31 +28,31 @@
     "village_name_template": "Village {num}",
     "village_name_number_length": 3,
     "auto_set_village_names": false,
-    "user_agent": null,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
     "check_update": true
   },
   "building": {
     "manage_buildings": true,
     "default": "purple_predator",
     "max_lookahead": 2,
-    "max_queued_items": 2
+    "max_queued_items": 5
   },
   "units": {
     "recruit": true,
     "upgrade": true,
-    "default": "basic",
-    "batch_size": 25,
+    "default": "basic_into_off",
+    "batch_size": 5,
     "manage_defence": false,
     "remove_manual_queued": false,
     "randomize_unit_queue": true
   },
   "village_template": {
     "building": "purple_predator",
-    "units": "basic",
+    "units": "basic_into_off",
     "managed": true,
     "scout_first": false,
     "additional_farms": [],
-    "prioritize_building": false,
+    "prioritize_building": true,
     "prioritize_snob": false,
     "trade_for_premium": false,
     "gather_enabled": false,
@@ -89,15 +89,33 @@
     "trade_max_per_hour": 1
   },
   "world": {
-    "knight_enabled": null,
-    "flags_enabled": null,
-    "quests_enabled": null,
-    "trade_for_premium": false,
-    "archers_enabled": true,
+    "knight_enabled": true,
+    "flags_enabled": false,
+    "quests_enabled": true,
+    "trade_for_premium": true,
+    "archers_enabled": false,
     "building_destruction_enabled": true,
-    "boosters_enabled": null
+    "boosters_enabled": false
   },
   "villages": {
-
+    "2162": {
+      "building": "purple_predator",
+      "units": "basic_into_off",
+      "managed": true,
+      "scout_first": false,
+      "additional_farms": [],
+      "prioritize_building": true,
+      "prioritize_snob": false,
+      "trade_for_premium": false,
+      "gather_enabled": false,
+      "gather_selection": 1,
+      "advanced_gather": true,
+      "snobs": 0,
+      "evacuate_fragile_units_on_attack": false,
+      "support_others": false,
+      "support_others_factor": 0.25,
+      "support_others_max_villages": 2,
+      "request_support_on_attack": false
+    }
   }
 }
