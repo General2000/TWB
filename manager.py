@@ -85,12 +85,12 @@ class VillageManager:
                         data["high_profile"] = True
                         AttackCache.set_cache(farm, data)
 
-            if percentage_lost > 20 and not data["low_profile"]:
+            if percentage_lost > 5 and not data["low_profile"]:
                 logger.warning(f"Dangerous {percentage_lost} percentage lost units! Extending farm time")
                 data["low_profile"] = True
                 data["high_profile"] = False
                 AttackCache.set_cache(farm, data)
-            if percentage_lost > 50 and len(num_attack) > 10:
+            if percentage_lost > 4 and len(num_attack) > 3:
                 logger.critical("Farm seems too dangerous/ unprofitable to farm. Setting safe to false!")
                 data["safe"] = False
                 AttackCache.set_cache(farm, data)
