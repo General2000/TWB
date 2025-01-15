@@ -490,6 +490,9 @@ class Village:
                     self.attack.max_farms = self.get_config(
                         section="farms", parameter="max_farms", default=25
                     )
+                    self.attack.ignored_villages = self.get_config(
+                        section="farms", parameter="ignored_villages", default=[]
+                    )
                     self.attack.run()
 
     def do_gather(self):
@@ -542,8 +545,9 @@ class Village:
         ) and self.get_village_config(
             self.village_id, parameter="trade_for_premium", default=False
         ):
-            # Set the parameter correctly when the config says so.
-            self.resman.do_premium_trade = True
+            self.resman.do_premium_trade = self.get_config(
+                section="market", parameter="do_premium_trade", default=False
+            )
             self.resman.do_premium_stuff()
 
     def run(self, config=None, first_run=False):

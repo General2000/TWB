@@ -618,7 +618,7 @@ class TroopManager:
             self.wait_for[self.village_id][building] = int(time.time()) + (
                     amount * int(resources["build_time"])
             )
-            # self.troops[unit_type] = str((int(self.troops[unit_type]) if unit_type in self.troops else 0) + amount)
+            self.troops[unit_type] = str((int(self.troops[unit_type]) if unit_type in self.troops else 0) + amount)
             self.logger.info(
                 "Recruitment of %d %s started (%s idle till %d)",
                     amount,

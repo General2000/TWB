@@ -185,8 +185,7 @@ class DefenceManager:
         return self.flags[flag_id]
 
     def manage_flags(self):
-        if not self.manage_flags_enabled:
-            return
+        return
         # Randomize flag runs
         if self.runs != 0 and self.runs % random.randint(3, 8) != 0:
             return

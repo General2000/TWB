@@ -225,7 +225,7 @@ class OverviewPage:
 
     def _get_overview_villages_data(self):
         """Get the overview villages data using the wrapper object."""
-        return self.wrapper.get_url("game.php?screen=overview_villages")
+        return self.wrapper.get_url("game.php?screen=overview_villages&mode=combined")
 
     def parse_production_table(self):
         """Parse the production table to extract village data."""

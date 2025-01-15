@@ -1,23 +1,25 @@
 [{
     "building": "barracks",
-    "level": 5,
+    "level": 3,
     "research": [
         "axe", "light", "spy", "ram"
     ],
     "build": {
       "barracks": {
-        "axe": 7500
+        "axe": 4500
       },
       "stable": {
-        "light": 1000,
-        "spy": 500
+        "light": 2000,
+        "spy": 1
        },
        "workshop": {
-        "ram": 150,
-        "spy": 500
+        "ram": 50,
+        "spy": 0
        }
       },
     "farm": [
-        {"light": 100}
+      {
+        "light": 1
+      }
     ]
 }]

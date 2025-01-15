@@ -82,7 +82,7 @@ class PremiumExchange:
         r = {
             "merchants": offers[0][0],
             "ratio": offers[0][1],
-            "n_to_sell": offers[0][2]
+            "n_to_sell": offers[0][2]-1
         }
 
         return r
@@ -134,100 +134,152 @@ class ResourceManager:
 
     def do_premium_stuff(self):
         """
-        Does premium stuff
+        Does premium stuff.
+
+        NEW LOGIC:
+        - If do_premium_trade is True, attempt to sell all excess resources.
+        - 'Excess' is determined by: (sum of wood+stone+iron) - (merchants_available * 1000)
+          divided by 3.
+        - For each resource: if its current amount is greater than the baseline, we sell the difference.
+        - Trade sequentially: after a successful trade, update market data and then proceed with the next resource.
         """
-        gpl = self.get_plenty_off()
-        self.logger.debug(
-            "Trying premium trade: gpl %s do? %s", gpl, self.do_premium_trade
-        )
-        if gpl and self.do_premium_trade:
+        if not self.do_premium_trade:
+            self.logger.debug("Premium trading not enabled.")
+            return
+
+        # Get the current premium market data.
+        url = f"game.php?village={self.village_id}&screen=market&mode=exchange"
+        res = self.wrapper.get_url(url=url)
+        data = Extractor.premium_data(res.text)
+        if not data:
+            self.logger.warning("Error reading premium data!")
+            return
+
+        # Calculate the baseline for each resource:
+        #  total_available_in_resources - (total merchants available * 1000) divided by 3.
+        # (Assuming resources are wood, stone, iron)
+        available_merchants = data["merchants"]
+        if available_merchants < 1:
+            self.logger.info("No merchants available for premium trade!")
+            return
+
+        total_resources = self.actual.get("wood", 0) + self.actual.get("stone", 0) + self.actual.get("iron", 0)
+        total_tradable_capacity = available_merchants * 1000
+        # If total_resources is less than or equal to trade capacity, no excess exists.
+
+
+        baseline = max((total_resources - total_tradable_capacity) // 3, 0)
+        self.logger.debug("Premium trade baseline per resource: %d", baseline)
+
+        # Choose an order for resources - for example: wood, iron, stone.
+        resource_order = ["stone", "wood", "iron"]
+
+        for resource in resource_order:
+            # Refresh market data each time
             url = f"game.php?village={self.village_id}&screen=market&mode=exchange"
             res = self.wrapper.get_url(url=url)
             data = Extractor.premium_data(res.text)
+            if not data:
+                self.logger.warning("Error reading premium data on refresh!")
+                return
 
-            premium_exchange = PremiumExchange(
+            available_merchants = data["merchants"]
+            if available_merchants < 1:
+                self.logger.info("No more merchants available!")
+                return
+
+            # Determine how many units of the resource we can sell.
+            current = self.actual.get(resource, 0)
+            if current <= baseline:
+                self.logger.debug("Resource %s is not in excess (current: %d, baseline: %d)", resource, current, baseline)
+                continue
+
+            excess = current - baseline
+
+            # But since one merchant can only trade up to 1000 units, we limit sell amount accordingly.
+            max_sell_possible = available_merchants * 1000
+            if excess > max_sell_possible:
+                excess = max_sell_possible
+
+            # Use existing logic for price calculation: determine the cost per premium point.
+            cost_per_point = data and PremiumExchange(
                 wrapper=self.wrapper,
                 stock=data["stock"],
                 capacity=data["capacity"],
                 tax=data["tax"],
                 constants=data["constants"],
                 duration=data["duration"],
-                merchants=data["merchants"]
+                merchants=available_merchants
+            ).calculate_rate_for_one_point(resource)
+
+            self.logger.debug("For resource %s, calculated cost per point: %s", resource, cost_per_point)
+            self.logger.info("Current %s amount: %d; excess to sell: %d", resource, current, excess)
+
+            # Using the existing logic from before:
+            # For a trade to be worthwhile we check that (price from premium market * 1.1) is less than our resource count.
+            prices = {}
+            for p in ["wood", "stone", "iron"]:
+                prices[p] = data["stock"][p] * data["rates"][p]
+            if resource not in prices or prices[resource] * 1.1 >= current:
+                self.logger.info("Not a good moment to trade %s", resource)
+                continue
+
+            # Calculate optimal trade amounts using existing function optimize_n.
+            opt_trade = PremiumExchange.optimize_n(
+                amount=excess,
+                sell_price=cost_per_point,
+                merchants=available_merchants,
+                size=1000
+            )
+            self.logger.debug("Optimized trade for %s: %s", resource, opt_trade)
+            if opt_trade["ratio"] > 0.4:
+                self.logger.info("Trade not worth trading for %s (ratio too high: %s)", resource, opt_trade["ratio"])
+                continue
+
+            sell_amount = int(opt_trade["n_to_sell"] * cost_per_point)
+            # Do not attempt trades of negligible amounts.
+            if sell_amount < 1:
+                self.logger.info("Calculated sell amount for %s is too low: %d", resource, sell_amount)
+                continue
+
+            # Start the trade (similar to original logic)
+            self.logger.info("Attempting trade of %d %s for premium point", sell_amount, resource)
+            trade_begin_url = f"game.php?village={self.village_id}&screen=market&mode=exchange"
+            trade_begin_res = self.wrapper.get_url(url=trade_begin_url)
+            # Assuming premium_data still valid
+            result = self.wrapper.get_api_action(
+                self.village_id,
+                action="exchange_begin",
+                params={"screen": "market"},
+                data={f"sell_{resource}": sell_amount}
             )
 
-            cost_per_point = premium_exchange.calculate_rate_for_one_point(gpl)
-
-            self.logger.debug("Cost per point: %s", cost_per_point)
-            self.logger.info("Current %s price: ", self.actual[gpl])
-
-            if not data:
-                self.logger.warning("Error reading premium data!")
-            price_fetch = ["wood", "stone", "iron"]
-            prices = {}
-
-            for p in price_fetch:
-                prices[p] = data["stock"][p] * data["rates"][p]
-
-            self.logger.info("Actual premium prices: %s",  prices)
-
-            if gpl in prices and prices[gpl] * 1.1 < self.actual[gpl]:
-                self.logger.info(
-                    "Attempting trade of %d %s for premium point", prices[gpl], gpl
-                )
-
-                if data["merchants"] < 1:
-                    self.logger.info("Not enough merchants available!")
-                    return
-
-                self.logger.debug(f"Trying to trade {gpl} - exchange_begin")
-
-                prices[gpl] = int(prices[gpl])
-
-                gpl_data = PremiumExchange.optimize_n(
-                    amount=prices[gpl],
-                    sell_price=cost_per_point,
-                    merchants=data["merchants"],
-                    size=1000
-                )
-
-                self.logger.debug(f"Optimized trade: {gpl} {gpl_data} {gpl_data['n_to_sell'] * cost_per_point}")
-
-                if gpl_data["ratio"] > 0.4:
-                    self.logger.info("Not worth trading!")
-                    return
-
-                result = self.wrapper.get_api_action(
+            if result:
+                _rate_hash = result["response"][0]["rate_hash"]
+                trade_data = {
+                    f"sell_{resource}": sell_amount,
+                    "rate_hash": _rate_hash,
+                    "mb": "1"
+                }
+                confirm_res = self.wrapper.get_api_action(
                     self.village_id,
-                    action="exchange_begin",
+                    action="exchange_confirm",
                     params={"screen": "market"},
-                    data={f"sell_{gpl}": (gpl_data["n_to_sell"] * cost_per_point)},
+                    data=trade_data,
                 )
-
-                if result:
-                    _rate_hash = result["response"][0]["rate_hash"]
-
-                    trade_data = {
-                        "sell_%s" % gpl: (gpl_data["n_to_sell"] * cost_per_point),
-                        "rate_hash": _rate_hash,
-                        "mb": "1"
-                    }
-
-                    result = self.wrapper.get_api_action(
-                        self.village_id,
-                        action="exchange_confirm",
-                        params={"screen": "market"},
-                        data=trade_data,
-                    )
-
-                    if result:
-                        self.logger.info("Trade successful!")
-                    else:
-                        self.logger.info("Trade failed!")
+                if confirm_res:
+                    self.logger.info("Trade for %s successful!", resource)
+                    # Update our local resource amount to reflect the sale.
+                    self.actual[resource] -= sell_amount
+                    # Wait a short while before checking next resource (or re-fetch market data).
+                    time.sleep(1)
+                    # Continue with next resource.
                 else:
-                    self.logger.debug(
-                        f"Trying to trade %s for premium points - exchange_begin - failed", gpl
-                    )
-                    self.logger.info("Trade failed!")
+                    self.logger.info("Trade confirmation for %s failed.", resource)
+            else:
+                self.logger.debug("Exchange begin for %s failed.", resource)
+                self.logger.info("Trade failed for %s.", resource)
+
 
     def check_state(self):
         """

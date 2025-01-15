@@ -23,7 +23,7 @@ class AttackManager:
     targets = {}
     logger = logging.getLogger("Attacks")
     max_farms = 15
-    template = {}
+    template = {"light": 2}
     extra_farm = []
     repman = None
     target_high_points = False
@@ -31,6 +31,7 @@ class AttackManager:
     farm_minpoints = 0
     farm_maxpoints = 1000
     ignored = []
+    ignored_villages = []
 
     # Configures the amount of spies used to detect if villages are safe to farm
     scout_farm_amount = 5
@@ -156,6 +157,11 @@ class AttackManager:
         )
         for vid in self.map.villages:
             village = self.map.villages[vid]
+            if vid in self.ignored_villages:  # Check if the village ID is in the ignored_villages list
+                self.logger.debug(
+                    "Ignoring village %s because it is in the ignored_villages list", vid
+                )
+                continue
             if village["owner"] != "0" and vid not in self.extra_farm:
                 if vid not in self.ignored:
                     self.logger.debug(

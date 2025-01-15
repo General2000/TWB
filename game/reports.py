@@ -66,11 +66,11 @@ class ReportManager:
                 if (
                         entry["type"] == "scout"
                         and entry["losses"] == {}
-                        and (
-                        entry["extra"]["defence_units"] == {}
-                        or entry["extra"]["defence_units"]
-                        == entry["extra"]["defence_losses"]
-                )
+                #         and (
+                #         entry["extra"]["defence_units"] == {}
+                #         or entry["extra"]["defence_units"]
+                #         == entry["extra"]["defence_losses"]
+                # )
                 ):
                     return 1
 

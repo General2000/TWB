@@ -5,8 +5,8 @@
     "author": "stefan2200"
   },
   "server": {
-    "server": "ch84",
-    "endpoint": "https://ch84.staemme.ch/game.php",
+    "server": "ch85",
+    "endpoint": "https://ch85.staemme.ch/game.php",
     "server_on_twstats": false
   },
   "reporting": {
@@ -14,9 +14,9 @@
     "connection_string": "file://cache/logs/twb_{ts}.log"
   },
   "notifications": {
-    "enabled": false,
-    "channel_id": "",
-    "token": ""
+    "enabled": true,
+    "channel_id": "-1002336991571",
+    "token": "7324485156:AAFRdry0O0Ql1a1_EAFPN9f6_vGoVFEqJbI"
   },
   "bot": {
     "active_hours": "6-23",
@@ -40,7 +40,7 @@
   "units": {
     "recruit": true,
     "upgrade": true,
-    "default": "basic_into_off",
+    "default": "basic",
     "batch_size": 5,
     "manage_defence": false,
     "remove_manual_queued": false,
@@ -78,7 +78,8 @@
     "attack_higher_points": false,
     "force_scout_if_available": true,
     "forced_peace_times": [],
-    "farm_scout_amount": 5
+    "farm_scout_amount": 5,
+    "ignored_villages": []
   },
   "market": {
     "auto_trade": true,
@@ -97,25 +98,5 @@
     "building_destruction_enabled": true,
     "boosters_enabled": false
   },
-  "villages": {
-    "2162": {
-      "building": "purple_predator",
-      "units": "basic_into_off",
-      "managed": true,
-      "scout_first": false,
-      "additional_farms": [],
-      "prioritize_building": true,
-      "prioritize_snob": false,
-      "trade_for_premium": false,
-      "gather_enabled": false,
-      "gather_selection": 1,
-      "advanced_gather": true,
-      "snobs": 0,
-      "evacuate_fragile_units_on_attack": false,
-      "support_others": false,
-      "support_others_factor": 0.25,
-      "support_others_max_villages": 2,
-      "request_support_on_attack": false
-    }
-  }
+  "villages": {}
 }
